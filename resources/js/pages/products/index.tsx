@@ -1,12 +1,9 @@
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link } from '@inertiajs/react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@headlessui/react';
-import { CustomTextarea } from '@/components/ui/custom-textarea';
+import { Head, Link, usePage } from '@inertiajs/react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { useEffect, useState } from 'react';
+import { Eye, Pencil, Trash2 } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -15,12 +12,47 @@ const breadcrumbs: BreadcrumbItem[] = [
     }
 ];
 
-export default function Index() {
+interface Product {
+    id: number;
+    name: string;
+    description: string;
+    price: number;
+    featured_image: string;
+    created_at: string;
+}
+
+export default function Index({ ...props }: { products: Product[] }) {
+    const { products } = props;
+    console.log(products);
+    const { flash } = usePage<{ flash?: { success?: string; error?: string } }>().props;
+    const flashMessage = flash?.success || flash?.error;
+    const [showAlert, setShowAlert] = useState(!!flashMessage);
+
+    useEffect(() => {
+        if (flashMessage) {
+            const timer = setTimeout(() => {
+                setShowAlert(false);
+            }, 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [flashMessage]);
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Products Manage" />
             <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
 
+                {showAlert && flashMessage && (
+                    <Alert
+                        variant={'default'}
+                        className={`${flash?.success ? 'bg-green-600' : 'bg-red-600'} text-white mb-4 ml-auto max-w-md`}
+                    >
+                        <AlertDescription className="text-white">
+                            {flash.success ? 'Success!' : 'Error'}
+                            {flashMessage}
+                        </AlertDescription>
+                    </Alert>
+                )}
                 <div className="ml-auto">
                     <Link as="button" href={route('products.create')}
                           className="rounded-lg text-center text-md cursor-pointer bg-indigo-800 px-4 py-2 text-white hover:opacity-90">
@@ -42,15 +74,34 @@ export default function Index() {
                         </thead>
 
                         <tbody>
-                        <tr>
-                            <td className="border px-4 py-2 text-center">1</td>
-                            <td className="border px-4 py-2 text-center">Product 1</td>
-                            <td className="border px-4 py-2 text-center">This is product 1</td>
-                            <td className="border px-4 py-2 text-center">$10.00</td>
-                            <td className="border px-4 py-2 text-center"></td>
-                            <td className="border px-4 py-2 text-center">2024-01-01</td>
-                            <td className="border px-4 py-2 text-center">Edit | Delete</td>
-                        </tr>
+                        {products.map((product, index) => (
+                            <tr key={index}>
+                                <td className="border px-4 py-2 text-center">{index + 1}</td>
+                                <td className="border px-4 py-2 text-center">{product.name}</td>
+                                <td className="border px-4 py-2 text-center">{product.description}</td>
+                                <td className="border px-4 py-2 text-center">{product.price}</td>
+                                <td className="border px-4 py-2 text-center">
+                                    <img src={product.featured_image} alt={product.name} className="h-16" />
+                                </td>
+                                <td className="border px-4 py-2 text-center">{product.created_at}</td>
+                                <td className="border px-4 py-2 text-center">
+                                    <Link as="button"
+                                          className="bg-sky-600 p-1 rounded-lg text-white ms-2 cursor-pointer">
+                                        <Eye size={20} />
+                                    </Link>
+                                    <Link as="button"
+                                          className="bg-blue-600 p-1 rounded-
+                                          lg text-white ms-2 cursor-pointer">
+                                        <Pencil size={20} />
+                                    </Link>
+                                    <Link as="button"
+                                          className="bg-red-600 p-1 rounded-lg text-white ms-2 cursor-pointer">
+                                        <Trash2 size={20} />
+                                    </Link>
+                                </td>
+
+                            </tr>
+                        ))}
                         </tbody>
                     </table>
                 </div>

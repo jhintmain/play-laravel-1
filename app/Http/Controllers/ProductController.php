@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\ProductFormRequest;
 use App\Models\Product;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 
 class ProductController extends Controller
@@ -13,7 +15,10 @@ class ProductController extends Controller
      */
     public function index()
     {
-        return Inertia::render('products/index');
+        $products = Product::all();
+        return Inertia::render('products/index', [
+            'products' => $products
+        ]);
     }
 
     /**
@@ -27,9 +32,32 @@ class ProductController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(ProductFormRequest $request)
     {
-        //
+        try {
+            $image = null;
+            $imageName = null;
+            if ($request->hasFile('image')) {
+                $image = $request->file('image');
+                $imageName = $image->getClientOriginalName();
+                $image->store('products', 'public');
+            }
+
+            $product = Product::create([
+                'name' => $request->name,
+                'description' => $request->description,
+                'price' => $request->price,
+                'featured_image' => $image,
+                'featured_image_origin_name' => $imageName,
+            ]);
+
+            if ($product) {
+                return redirect()->route('products.index')->with('success', 'Product created successfully.');
+            }
+            return redirect()->back()->with('error', 'Something went wrong.');
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+        }
     }
 
     /**
@@ -37,7 +65,7 @@ class ProductController extends Controller
      */
     public function show(Product $product)
     {
-        //
+        dd($product);
     }
 
     /**
