@@ -4,16 +4,18 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProductFormRequest;
 use App\Models\Product;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class ProductController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(): Response
     {
         $products = Product::all();
         return Inertia::render('products/index', [
@@ -24,7 +26,7 @@ class ProductController extends Controller
     /**
      * Show the form for creating a new resource.
      */
-    public function create()
+    public function create(): Response
     {
         return Inertia::render('products/product-form');
     }
@@ -32,7 +34,7 @@ class ProductController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(ProductFormRequest $request)
+    public function store(ProductFormRequest $request): ?RedirectResponse
     {
         try {
             $image = null;
@@ -40,7 +42,8 @@ class ProductController extends Controller
             if ($request->hasFile('image')) {
                 $image = $request->file('image');
                 $imageName = $image->getClientOriginalName();
-                $image->store('products', 'public');
+                $image->move(public_path('images')."/products", $imageName);
+//                $image->store('products', 'public');
             }
 
             $product = Product::create([
@@ -54,26 +57,34 @@ class ProductController extends Controller
             if ($product) {
                 return redirect()->route('products.index')->with('success', 'Product created successfully.');
             }
-            return redirect()->back()->with('error', 'Something went wrong.');
+
         } catch (\Exception $e) {
             Log::error($e->getMessage());
         }
+
+        return redirect()->back()->with('error', 'Something went wrong.');
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Product $product)
+    public function show(Product $product): Response
     {
-        dd($product);
+        return Inertia::render('products/product-form', [
+            'product' => $product,
+            'isView' => true
+        ]);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Product $product)
+    public function edit(Product $product): Response
     {
-        //
+        return Inertia::render('products/product-form', [
+            'product' => $product,
+            'isEdit' => true
+        ]);
     }
 
     /**
@@ -82,13 +93,16 @@ class ProductController extends Controller
     public function update(Request $request, Product $product)
     {
         //
+        dd($request->all(), $product);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Product $product)
+    public function destroy(Product $product): RedirectResponse
     {
-        //
+        $product->delete();
+        return redirect()->route('products.index')
+            ->with('success', 'Product deleted successfully.');
     }
 }

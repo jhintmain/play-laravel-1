@@ -3,7 +3,7 @@ import { type BreadcrumbItem } from '@/types';
 import { Head, Link, usePage } from '@inertiajs/react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useEffect, useState } from 'react';
-import { Eye, Pencil, Trash2 } from 'lucide-react';
+import { CirclePlusIcon, Eye, Pencil, Trash2 } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -23,7 +23,6 @@ interface Product {
 
 export default function Index({ ...props }: { products: Product[] }) {
     const { products } = props;
-    console.log(products);
     const { flash } = usePage<{ flash?: { success?: string; error?: string } }>().props;
     const flashMessage = flash?.success || flash?.error;
     const [showAlert, setShowAlert] = useState(!!flashMessage);
@@ -54,10 +53,12 @@ export default function Index({ ...props }: { products: Product[] }) {
                     </Alert>
                 )}
                 <div className="ml-auto">
-                    <Link as="button" href={route('products.create')}
-                          className="rounded-lg text-center text-md cursor-pointer bg-indigo-800 px-4 py-2 text-white hover:opacity-90">
-                        Add Product
-                    </Link>
+                    <Link as="button"
+                          href={route('products.create')}
+                          className="flex items-center hover:opacity-90 rounded-lg text-center text-md cursor-pointer bg-indigo-800 px-4 py-2 text-white">
+                        <CirclePlusIcon size={20} className="margin"/>
+                        Add Product</Link>
+
                 </div>
                 <div className="overflow-hidden rounded-lg border bg-white shadow-sm">
                     <table className="w-full table-auto">
@@ -81,20 +82,23 @@ export default function Index({ ...props }: { products: Product[] }) {
                                 <td className="border px-4 py-2 text-center">{product.description}</td>
                                 <td className="border px-4 py-2 text-center">{product.price}</td>
                                 <td className="border px-4 py-2 text-center">
-                                    <img src={product.featured_image} alt={product.name} className="h-16" />
+                                    <img src={`/${product.featured_image}`} alt={product.name} className="h-16" />
                                 </td>
                                 <td className="border px-4 py-2 text-center">{product.created_at}</td>
                                 <td className="border px-4 py-2 text-center">
                                     <Link as="button"
+                                          href={route('products.show', product.id)}
                                           className="bg-sky-600 p-1 rounded-lg text-white ms-2 cursor-pointer">
                                         <Eye size={20} />
                                     </Link>
                                     <Link as="button"
+                                          href={route('products.edit', product.id)}
                                           className="bg-blue-600 p-1 rounded-
                                           lg text-white ms-2 cursor-pointer">
                                         <Pencil size={20} />
                                     </Link>
                                     <Link as="button"
+                                            href={route('products.destroy', product.id)}
                                           className="bg-red-600 p-1 rounded-lg text-white ms-2 cursor-pointer">
                                         <Trash2 size={20} />
                                     </Link>
