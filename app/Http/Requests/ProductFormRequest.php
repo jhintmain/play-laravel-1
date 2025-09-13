@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
 class ProductFormRequest extends FormRequest
@@ -17,7 +18,7 @@ class ProductFormRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
@@ -25,7 +26,7 @@ class ProductFormRequest extends FormRequest
             'name' => 'required|string|max:255',
             'description' => 'nullable|string',
             'price' => 'required|numeric|min:0',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'featured_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
         ];
     }
 
@@ -39,9 +40,9 @@ class ProductFormRequest extends FormRequest
             'price.required' => 'Please enter Price is required',
             'price.numeric' => 'Price must be a number',
             'price.min' => 'Price must be at least 0',
-            'image.image' => 'File must be an image',
-            'image.mimes' => 'Image must be a file of type: jpeg, png, jpg, gif, svg',
-            'image.max' => 'Image may not be greater than 2048 KB',
+            'featured_image.image' => 'File must be an image',
+            'featured_image.mimes' => 'Image must be a file of type: jpeg, png, jpg, gif, svg',
+            'featured_image.max' => 'Image may not be greater than 2048 KB',
         ];
     }
 }

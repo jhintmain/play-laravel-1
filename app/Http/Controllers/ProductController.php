@@ -7,17 +7,27 @@ use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ProductController extends Controller
 {
+    const IMAGE_FOLDER = 'images/products';
+
     /**
      * Display a listing of the resource.
      */
     public function index(): Response
     {
         $products = Product::all();
+        $products->map(function ($product) {
+            if ($product->featured_image) {
+                $product->featured_image = Storage::url($product->featured_image);
+            }
+            return $product;
+        });
+
         return Inertia::render('products/index', [
             'products' => $products
         ]);
@@ -37,20 +47,20 @@ class ProductController extends Controller
     public function store(ProductFormRequest $request): ?RedirectResponse
     {
         try {
-            $image = null;
+            $path = null;
             $imageName = null;
-            if ($request->hasFile('image')) {
-                $image = $request->file('image');
+            if ($request->hasFile('featured_image')) {
+                $image = $request->file('featured_image');
                 $imageName = $image->getClientOriginalName();
-                $image->move(public_path('images')."/products", $imageName);
-//                $image->store('products', 'public');
+                $path = self::IMAGE_FOLDER . "/" . $imageName;
+                Storage::put($path, file_get_contents($image));
             }
 
             $product = Product::create([
                 'name' => $request->name,
                 'description' => $request->description,
                 'price' => $request->price,
-                'featured_image' => $image,
+                'featured_image' => $path,
                 'featured_image_origin_name' => $imageName,
             ]);
 
@@ -70,6 +80,9 @@ class ProductController extends Controller
      */
     public function show(Product $product): Response
     {
+        if ($product->featured_image) {
+            $product->featured_image = Storage::url($product->featured_image);
+        }
         return Inertia::render('products/product-form', [
             'product' => $product,
             'isView' => true
@@ -81,6 +94,9 @@ class ProductController extends Controller
      */
     public function edit(Product $product): Response
     {
+        if ($product->featured_image) {
+            $product->featured_image = Storage::url($product->featured_image);
+        }
         return Inertia::render('products/product-form', [
             'product' => $product,
             'isEdit' => true
@@ -92,8 +108,28 @@ class ProductController extends Controller
      */
     public function update(Request $request, Product $product)
     {
-        //
-        dd($request->all(), $product);
+        if ($product) {
+            $product->name = $request->name;
+            $product->description = $request->description;
+            $product->price = $request->price;
+
+            if ($request->file('featured_image')) {
+                $featuredImage = $request->file('featured_image');
+                $imageName = $featuredImage->getClientOriginalName();
+                $path = self::IMAGE_FOLDER . "/" . $imageName;
+                $product->featured_image = $path;
+                $product->featured_image_origin_name = $imageName;
+
+                Storage::delete($product->featured_image);
+                Storage::put($path, file_get_contents($featuredImage));
+            }
+
+            $product->save();
+
+            return redirect()->route('products.index')->with('success', 'Product updated successfully.');
+        }
+
+        return redirect()->back()->with('error', 'Product updated empty.');
     }
 
     /**
@@ -101,8 +137,21 @@ class ProductController extends Controller
      */
     public function destroy(Product $product): RedirectResponse
     {
-        $product->delete();
-        return redirect()->route('products.index')
-            ->with('success', 'Product deleted successfully.');
+
+        try {
+            if ($product) {
+                if ($product->featured_image) {
+                    Storage::delete($product->featured_image);
+                }
+                $product->delete();
+                return redirect()->route('products.index')
+                    ->with('success', 'Product deleted successfully.');
+            }
+
+        } catch (\Exception $e) {
+            Log::error($e->getMessage());
+        }
+
+        return redirect()->back()->with('error', 'Product delete empty.');
     }
 }

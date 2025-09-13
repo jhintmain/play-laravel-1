@@ -1,9 +1,10 @@
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useEffect, useState } from 'react';
 import { CirclePlusIcon, Eye, Pencil, Trash2 } from 'lucide-react';
+import { Button } from '@headlessui/react';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -56,7 +57,7 @@ export default function Index({ ...props }: { products: Product[] }) {
                     <Link as="button"
                           href={route('products.create')}
                           className="flex items-center hover:opacity-90 rounded-lg text-center text-md cursor-pointer bg-indigo-800 px-4 py-2 text-white">
-                        <CirclePlusIcon size={20} className="margin"/>
+                        <CirclePlusIcon size={20} className="margin" />
                         Add Product</Link>
 
                 </div>
@@ -75,37 +76,54 @@ export default function Index({ ...props }: { products: Product[] }) {
                         </thead>
 
                         <tbody>
-                        {products.map((product, index) => (
-                            <tr key={index}>
-                                <td className="border px-4 py-2 text-center">{index + 1}</td>
-                                <td className="border px-4 py-2 text-center">{product.name}</td>
-                                <td className="border px-4 py-2 text-center">{product.description}</td>
-                                <td className="border px-4 py-2 text-center">{product.price}</td>
-                                <td className="border px-4 py-2 text-center">
-                                    <img src={`/${product.featured_image}`} alt={product.name} className="h-16" />
-                                </td>
-                                <td className="border px-4 py-2 text-center">{product.created_at}</td>
-                                <td className="border px-4 py-2 text-center">
-                                    <Link as="button"
-                                          href={route('products.show', product.id)}
-                                          className="bg-sky-600 p-1 rounded-lg text-white ms-2 cursor-pointer">
-                                        <Eye size={20} />
-                                    </Link>
-                                    <Link as="button"
-                                          href={route('products.edit', product.id)}
-                                          className="bg-blue-600 p-1 rounded-
-                                          lg text-white ms-2 cursor-pointer">
-                                        <Pencil size={20} />
-                                    </Link>
-                                    <Link as="button"
-                                            href={route('products.destroy', product.id)}
-                                          className="bg-red-600 p-1 rounded-lg text-white ms-2 cursor-pointer">
-                                        <Trash2 size={20} />
-                                    </Link>
-                                </td>
+                        {products.length > 0
+                            ? (
+                                products.map((product, index) => (
+                                    <tr key={index}>
+                                        <td className="border px-4 py-2 text-center">{index + 1}</td>
+                                        <td className="border px-4 py-2 text-center">{product.name}</td>
+                                        <td className="border px-4 py-2 text-center">{product.description}</td>
+                                        <td className="border px-4 py-2 text-center">{product.price}</td>
+                                        <td className="border px-4 py-2 text-center">
+                                            {product.featured_image && (
+                                                <img src={`${product.featured_image}`} alt={product.name} className="h-16" />
+                                            )}
+                                        </td>
+                                        <td className="border px-4 py-2 text-center">{product.created_at}</td>
+                                        <td className="border px-4 py-2 text-center">
+                                            <Link as="button"
+                                                  href={route('products.show', product.id)}
+                                                  className="bg-sky-600 p-1 rounded-lg text-white ms-2 cursor-pointer">
+                                                <Eye size={20} />
+                                            </Link>
+                                            <Link as="button"
+                                                  href={route('products.edit', product.id)}
+                                                  className="bg-blue-600 p-1 rounded-lg text-white ms-2 cursor-pointer">
+                                                <Pencil size={20} />
+                                            </Link>
+                                            <Button as="button"
+                                                    onClick={() => {
+                                                        if (confirm('Are you sure you want to delete this product?')) {
+                                                            router.delete(route('products.destroy', product.id), {
+                                                                preserveScroll: true
+                                                            });
+                                                        }
+                                                    }}
+                                                    className="bg-red-600 p-1 rounded-lg text-white ms-2 cursor-pointer">
+                                                <Trash2 size={20} />
+                                            </Button>
+                                        </td>
 
-                            </tr>
-                        ))}
+                                    </tr>
+                                ))
+
+                            )
+                            : (<tr>
+                                <td className="border px-4 py-2 text-center text-md font-bold text-red-700"
+                                    colSpan={7}>No products found.
+                                </td>
+                            </tr>)
+                        }
                         </tbody>
                     </table>
                 </div>

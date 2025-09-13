@@ -12,6 +12,7 @@ import { BackpackIcon, LoaderCircle } from 'lucide-react';
 
 
 export default function ProductForm({ ...props }: {}) {
+    // @ts-ignore
     const { product, isView, isEdit } = props;
 
     const breadcrumbs: BreadcrumbItem[] = [
@@ -25,9 +26,10 @@ export default function ProductForm({ ...props }: {}) {
             name: product?.name || '',
             description: product?.description || '',
             price: product?.price || '',
-            image: product?.featured_image || null as File | null
+            featured_image: product?.featured_image || null as File | null
         }
     );
+
     const submit = (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -44,13 +46,13 @@ export default function ProductForm({ ...props }: {}) {
 
     const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
-            setData('image', e.target.files[0]);
+            setData('featured_image', e.target.files[0]);
         }
     };
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Products Manage" />
-            <div className="flex h-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
+            <div className="flex h¬œq-full flex-1 flex-col gap-4 rounded-xl p-4 overflow-x-auto">
 
                 {/* Back to Products Button */}
                 <div className="ml-auto">
@@ -122,25 +124,24 @@ export default function ProductForm({ ...props }: {}) {
                                 {/* Product Image */}
                                 {!isView && (
                                     <div className="grid gap-2">
-                                        <Label htmlFor="image">Image</Label>
+                                        <Label htmlFor="featured_image">Featured Image</Label>
                                         <Input
                                             onChange={handleFileUpload}
-                                            id="image"
-                                            name="image"
+                                            id="featured_image"
+                                            name="featured_image"
                                             type="file"
                                             autoFocus
                                             disabled={isView || processing}
                                             tabIndex={4}
                                         />
-                                        <InputError message={errors.image} />
+                                        <InputError message={errors.featured_image} />
                                     </div>
                                 )}
 
-                                {isView || isEdit && (
+                                {(isView || isEdit) && product.featured_image &&(
                                     <div className="grid gap-2">
-                                        <Label htmlFor="image">Current Image</Label>
-                                        <img src={`/${product.featured_image}`} alt="Featured Image"
-                                             className="w-50 h-40" />
+                                        <Label htmlFor="featured_image">Current Image</Label>
+                                        <img src={`${product.featured_image}`} alt="Featured Image" className="w-50 h-40" />
                                     </div>
                                 )}
 
